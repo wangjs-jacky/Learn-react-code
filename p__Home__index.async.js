@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[371],{21662:function(t,n,e){e.r(n);var _=e(974),a=e(90378),o=e(62086),l=function(){var u=(0,a.useModel)("global"),s=u.name;return console.log("name",s),(0,o.jsx)(_._z,{ghost:!0,children:(0,o.jsx)("h1",{style:{color:"red"},children:s})})};n.default=l}}]);
