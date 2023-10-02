@@ -7,7 +7,7 @@ https://juejin.cn/post/6989815456416661534
 const a = function (name) {
   return new Promise<void>(function (resolve, reject) {
     setTimeout(function () {
-      console.log("a");
+      console.log('a');
       resolve();
     }, 100);
   });
@@ -16,24 +16,24 @@ const a = function (name) {
 const generateB = (type: string) => (name) => {
   return new Promise<void>(function (resolve, reject) {
     setTimeout(function () {
-      console.log("b");
+      console.log('b');
       /* reject(); */
-      if (type === "success") {
+      if (type === 'success') {
         resolve();
-      } else if (type === "fail") {
+      } else if (type === 'fail') {
         reject();
       }
     }, 100);
   });
 };
 
-const b_success = generateB("success");
-const b_fail = generateB("fail");
+const b_success = generateB('success');
+const b_fail = generateB('fail');
 
 const c = function (name) {
   return new Promise<void>(function (resolve, reject) {
     setTimeout(function () {
-      console.log("c");
+      console.log('c');
       resolve();
     }, 100);
   });
@@ -57,27 +57,11 @@ const compose = (...fns) => {
           },
           first(...args),
         )
-        .then(() => {
-          resolve();
-        })
+        .then(() => resolve())
         .catch(() => reject());
     });
   };
 };
-
-console.time("time1");
-compose(
-  a,
-  b_success,
-  c,
-)("name").then(
-  () => {
-    console.timeEnd("time1");
-  },
-  () => {
-    console.log("串行执行失败");
-  },
-);
 
 /* 使用 async 和 await 实现 */
 const compose2 = (...fns) => {
@@ -100,22 +84,6 @@ const compose2 = (...fns) => {
     });
   };
 };
-
-setTimeout(() => {
-  console.time("time2");
-  compose2(
-    a,
-    b_fail,
-    c,
-  )("name").then(
-    () => {
-      console.timeEnd("time2");
-    },
-    () => {
-      console.log("串行执行失败");
-    },
-  );
-}, 400);
 
 class AsyncSeriesHook {
   constructor(name) {
@@ -146,23 +114,64 @@ class AsyncSeriesHook {
   }
 }
 
-setTimeout(() => {
-  let queue = new AsyncSeriesHook("name");
-
-  queue.tapPromise(a);
-  queue.tapPromise(b_success);
-  queue.tapPromise(c);
-
-  console.time("time3");
-
-  queue.promise().then(
-    () => console.timeEnd("time3"),
-    () => {
-      console.log("串行执行失败");
-    },
-  );
-}, 700);
-
 export default () => {
-  return <></>;
+  return (
+    <div>
+      <button
+        onClick={() => {
+          console.time('time1');
+          compose(
+            a,
+            b_success,
+            c,
+          )('name').then(
+            () => {
+              console.timeEnd('time1');
+            },
+            () => {
+              console.log('串行执行失败');
+            },
+          );
+        }}
+      >
+        {'使用 Promise 串实现'}
+      </button>
+      <button
+        onClick={() => {
+          console.time('time2');
+          compose2(
+            a,
+            b_fail,
+            c,
+          )('name').then(
+            () => {
+              console.timeEnd('time2');
+            },
+            () => {
+              console.log('串行执行失败');
+            },
+          );
+        }}
+      >
+        {'使用 for 循环 + async 和 await 实现'}
+      </button>
+      <button
+        onClick={() => {
+          let queue = new AsyncSeriesHook('name');
+          queue.tapPromise(a);
+          queue.tapPromise(b_success);
+          queue.tapPromise(c);
+          console.time('time3');
+          queue.promise().then(
+            () => console.timeEnd('time3'),
+            () => {
+              console.log('串行执行失败');
+            },
+          );
+        }}
+      >
+        {'类版本'}
+      </button>
+    </div>
+  );
 };

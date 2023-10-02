@@ -3,9 +3,18 @@
   https://juejin.cn/post/7223389749151760439
 */
 
-const a = () => console.log(1);
-const b = () => console.log(2);
-const c = () => console.log(3);
+const a = (...args: any[]) => {
+  console.log(1, args);
+  return 'a';
+};
+const b = (...args: any[]) => {
+  console.log(2, args);
+  return 'b';
+};
+const c = (...args: any[]) => {
+  console.log(3, args);
+  return 'c';
+};
 
 /* 
 同步串行：
@@ -16,7 +25,7 @@ c() -> b(c-res) -> a(b-res)  => a(b(c()));
 */
 
 /* 立即执行写法 */
-const compose_immediate1 = (...funcs) => {
+const compose_immediate1 = (...funcs: any[]) => {
   /* 翻转数组 */
   funcs.reverse();
 
@@ -27,7 +36,7 @@ const compose_immediate1 = (...funcs) => {
   }, funcs[0]());
 };
 
-const compose_immediate2 = (...funcs) => {
+const compose_immediate2 = (...funcs: any[]) => {
   /* 翻转数组 */
   funcs.reverse();
 
@@ -45,17 +54,46 @@ const c = () => console.log(3);
       ↓
 const wrap_c = (...args) => c(...args);
 */
-const compose_async = (...funcs) => {
+const compose_async = (...funcs: any[]) => {
   return funcs.reduce((pre, cur) => {
-    const wrapFun = (...args) => cur(args);
-    return (...args) => pre(wrapFun(...args));
+    return (...args) => pre(cur(...args));
   });
 };
 
-compose_immediate1(a, b, c);
-compose_immediate2(a, b, c);
-compose_async(a, b, c)();
+function compose_iterable(...tasks: any[]) {
+  return (...args) => {
+    function wrapFun(i: number) {
+      if (i === tasks.length - 1) return tasks[i](...args);
+      return tasks[i](wrapFun(i + 1));
+    }
+    return wrapFun(0);
+  };
+}
+
+function compose_iterable_delay(...tasks: any[]) {
+  return (...args) => {
+    function wrapFun(i: number) {
+      if (i === tasks.length - 1) return () => tasks[i](...args);
+      return () => tasks[i](wrapFun(i + 1)());
+    }
+    return wrapFun(0);
+  };
+}
 
 export default () => {
-  return <></>;
+  return (
+    <div>
+      <button onClick={() => compose_immediate1(a, b, c)}>立即执行</button>
+      <button onClick={() => compose_immediate2(a, b, c)}>立即执行2</button>
+      <button onClick={() => compose_async(a, b, c)('test1')}>
+        reduce实现
+      </button>
+      <button onClick={() => compose_iterable(a, b, c)('test1')}>
+        递归实现
+      </button>
+      <button onClick={() => compose_iterable_delay(a, b, c)('test1')()}>
+        递归实现-延迟版
+      </button>
+    </div>
+  );
 };

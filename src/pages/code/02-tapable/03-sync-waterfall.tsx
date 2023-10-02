@@ -3,7 +3,7 @@
 https://juejin.cn/post/6989815456416661534
 */
 
-/* Bail - 保险丝 */
+/* WaterFall 瀑布模式 */
 
 const a = (initArg) => {
   console.log('initArg', initArg);

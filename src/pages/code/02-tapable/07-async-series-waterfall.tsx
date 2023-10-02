@@ -7,8 +7,8 @@ https://juejin.cn/post/6989815456416661534
 const a = function (preRes) {
   return new Promise<void>(function (resolve, reject) {
     setTimeout(function () {
-      console.log("a", preRes);
-      resolve("a-返回值");
+      console.log('a', preRes);
+      resolve('a-返回值');
     }, 100);
   });
 };
@@ -16,8 +16,8 @@ const a = function (preRes) {
 const b = function (preRes) {
   return new Promise<void>(function (resolve, reject) {
     setTimeout(function () {
-      console.log("b", preRes);
-      resolve("b-返回值");
+      console.log('b', preRes);
+      resolve('b-返回值');
     }, 100);
   });
 };
@@ -25,11 +25,28 @@ const b = function (preRes) {
 const c = function (preRes) {
   return new Promise<void>(function (resolve, reject) {
     setTimeout(function () {
-      console.log("c", preRes);
-      resolve("c-返回值");
+      console.log('c', preRes);
+      resolve('c-返回值');
     }, 100);
   });
 };
+
+const generateB = (type: string) => (name) => {
+  return new Promise<void>(function (resolve, reject) {
+    setTimeout(function () {
+      console.log('b');
+      /* reject(); */
+      if (type === 'success') {
+        resolve();
+      } else if (type === 'fail') {
+        reject();
+      }
+    }, 100);
+  });
+};
+
+const b_success = generateB('success');
+const b_fail = generateB('fail');
 
 /* 串行: 简单模式
 a("initArg").then((res)=> b(res)).then((res)=>c(res))
@@ -57,21 +74,6 @@ const compose = (...fns) => {
   };
 };
 
-console.time("time1");
-compose(
-  a,
-  b,
-  c,
-)("初始参数").then(
-  (res) => {
-    console.log("compose", res);
-    console.timeEnd("time1");
-  },
-  () => {
-    console.log("串行执行失败");
-  },
-);
-
 /* 使用 async 和 await 实现 */
 const compose2 = (...fns) => {
   return (arg) => {
@@ -96,50 +98,47 @@ const compose2 = (...fns) => {
   };
 };
 
-setTimeout(() => {
-  console.time("time2");
-  compose2(
-    a,
-    b,
-    c,
-  )("初始值").then(
-    (res) => {
-      console.log("compose", res);
-
-      console.timeEnd("time2");
-    },
-    () => {
-      console.log("串行执行失败");
-    },
-  );
-}, 400);
-
-/* class AsyncParallelHook {
-  constructor(name) {
-    this.tasks = [];
-    this.name = name;
-  }
-  tapPromise(task) {
-    this.tasks.push(task);
-  }
-
-  promise() {
-    let promises = this.tasks.map((task) => task());
-    // Promise.all所有的Promsie执行完成会调用回调
-    return Promise.all(promises);
-  }
-}
-
-let queue = new AsyncParallelHook("name");
-
-queue.tapPromise(a);
-queue.tapPromise(b);
-queue.tapPromise(c);
-
-console.time("time2");
-
-queue.promise("Hello-2").then(() => console.timeEnd("time2")); */
-
 export default () => {
-  return <></>;
+  return (
+    <div>
+      <button
+        onClick={() => {
+          console.time('time1');
+          compose(
+            a,
+            b_success,
+            c,
+          )('name').then(
+            () => {
+              console.timeEnd('time1');
+            },
+            () => {
+              console.log('串行执行失败');
+            },
+          );
+        }}
+      >
+        {'使用 Promise 串实现'}
+      </button>
+      <button
+        onClick={() => {
+          console.time('time2');
+          compose2(
+            a,
+            b_fail,
+            c,
+          )('name').then(
+            () => {
+              console.timeEnd('time2');
+            },
+            () => {
+              console.log('串行执行失败');
+            },
+          );
+        }}
+      >
+        {'使用 for 循环 + async 和 await 实现'}
+      </button>
+    </div>
+  );
 };
